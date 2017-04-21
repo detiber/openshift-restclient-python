@@ -96,7 +96,7 @@ def admin_kubeconfig(openshift_container, tmpdir_factory):
         return kubeconfig_file
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def k8s_ansible_helper(request, kubeconfig):
     _, _, api_version, resource = request.module.__name__.split('_', 3)
     auth = {}
@@ -112,7 +112,7 @@ def k8s_ansible_helper(request, kubeconfig):
     return helper
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def openshift_ansible_helper(request, kubeconfig):
     _, _, api_version, resource = request.module.__name__.split('_', 3)
     auth = {}
@@ -128,7 +128,7 @@ def openshift_ansible_helper(request, kubeconfig):
     return helper
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def admin_k8s_ansible_helper(request, admin_kubeconfig):
     _, _, api_version, resource = request.module.__name__.split('_', 3)
     auth = {}
@@ -145,7 +145,7 @@ def admin_k8s_ansible_helper(request, admin_kubeconfig):
     return helper
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def admin_openshift_ansible_helper(request, admin_kubeconfig):
     _, _, api_version, resource = request.module.__name__.split('_', 3)
     auth = {}
@@ -157,6 +157,27 @@ def admin_openshift_ansible_helper(request, admin_kubeconfig):
         }
     helper = OpenShiftAnsibleModuleHelper(api_version, resource, **auth)
     helper.enable_debug(to_file=False)
+    helper.api_client.config.debug = True
+
+    return helper
+
+
+@pytest.fixture(scope='class')
+def ansible_helper(request, kubeconfig, admin_kubeconfig):
+    # TODO: Admin stuff?
+    _, api_version, resource = map(lambda x: x.lower(), request.node.name.split('_', 2))
+    auth = {}
+    if kubeconfig is not None:
+        auth = {
+            'kubeconfig': str(kubeconfig),
+            'host': 'https://localhost:8443',
+            'verify_ssl': False
+        }
+    try:
+        helper = KubernetesAnsibleModuleHelper(api_version, resource, debug=True, reset_logfile=False, **auth)
+    except Exception:
+        helper = OpenShiftAnsibleModuleHelper(api_version, resource, debug=True, reset_logfile=False, **auth)
+
     helper.api_client.config.debug = True
 
     return helper
@@ -221,7 +242,7 @@ def object_name():
     return name
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def project(kubeconfig):
     name = "test-{}".format(uuid.uuid4())
     auth = {}
@@ -278,33 +299,15 @@ def _get_id(argvalue):
 
 
 def pytest_generate_tests(metafunc):
-    _, api_version, resource = metafunc.module.__name__.split('_', 2)
-    yaml_name = api_version + '_' + resource + '.yml'
-    yaml_path = os.path.normpath(os.path.join(os.path.dirname(__file__),
-                                              '../../openshift/ansiblegen/examples', yaml_name))
-    if not os.path.exists(yaml_path):
-        raise Exception("ansible_data: Unable to locate {}".format(yaml_path))
-    with open(yaml_path, 'r') as f:
-        data = yaml.load(f)
-    seq = 0
-    for task in data:
-        seq += 1
-        task['seq'] = seq
+    tasks = {'create': [], 'remove': [], 'patch': [], 'replace': []}
+    for task in metafunc.cls.tasks:
+        for action in ['create', 'patch', 'remove', 'replace']:
+            if '{}_tasks'.format(action) in metafunc.fixturenames:
+                tasks[action].append(task)
 
-    if 'create_tasks' in metafunc.fixturenames:
-        tasks = [x for x in data if x.get('create')]
-        metafunc.parametrize("create_tasks", tasks, False, _get_id)
-    if 'patch_tasks' in metafunc.fixturenames:
-        tasks = [x for x in data if x.get('patch')]
-        metafunc.parametrize("patch_tasks", tasks, False, _get_id)
-    if 'remove_tasks' in metafunc.fixturenames:
-        tasks = [x for x in data if x.get('remove')]
-        metafunc.parametrize("remove_tasks", tasks, False, _get_id)
-    if 'replace_tasks' in metafunc.fixturenames:
-        tasks = [x for x in data if x.get('replace')]
-        metafunc.parametrize("replace_tasks", tasks, False, _get_id)
+    # TODO: might need to update this...
     if 'namespaces' in metafunc.fixturenames:
-        tasks = [x for x in data if x.get('create') and x['create'].get('namespace')]
+        tasks = [x for x in tasks['create'] if x.get('namespace')]
         unique_namespaces = dict()
         for task in tasks:
             unique_namespaces[task['create']['namespace']] = None
