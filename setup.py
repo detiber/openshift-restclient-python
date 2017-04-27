@@ -26,7 +26,7 @@ from setuptools import find_packages, setup
 # by scripts/update-client.sh.
 CLIENT_VERSION = "0.0.1"
 PACKAGE_NAME = "openshift"
-DEVELOPMENT_STATUS = "2 - Beta"
+DEVELOPMENT_STATUS = "4 - Beta"
 
 
 def extract_requirements(filename):
