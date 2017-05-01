@@ -134,7 +134,7 @@ def ClassFactory(name):
 
 
 for ((apiversion, resource_type), tasks) in get_tasks():
-    class_name = 'Test_{}_{}'.format(apiversion.capitalize(), resource_type.capitalize())
+    class_name = 'Test{}{}'.format(apiversion.capitalize(), ''.join(map(str.capitalize, resource_type.split('_'))))
     globals()[class_name] = ClassFactory(resource_type)
     globals()[class_name]._type = class_name
     globals()[class_name].tasks = tasks

@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import re
 import copy
 import io
 import os
@@ -96,75 +97,11 @@ def admin_kubeconfig(openshift_container, tmpdir_factory):
         return kubeconfig_file
 
 
-@pytest.fixture()
-def k8s_ansible_helper(request, kubeconfig):
-    _, _, api_version, resource = request.module.__name__.split('_', 3)
-    auth = {}
-    if kubeconfig is not None:
-        auth = {
-            'kubeconfig': str(kubeconfig),
-            'host': 'https://localhost:8443',
-            'verify_ssl': False
-        }
-    helper = KubernetesAnsibleModuleHelper(api_version, resource, debug=True, reset_logfile=False, **auth)
-    helper.api_client.config.debug = True
-
-    return helper
-
-
-@pytest.fixture()
-def openshift_ansible_helper(request, kubeconfig):
-    _, _, api_version, resource = request.module.__name__.split('_', 3)
-    auth = {}
-    if kubeconfig is not None:
-        auth = {
-            'kubeconfig': str(kubeconfig),
-            'host': 'https://localhost:8443',
-            'verify_ssl': False
-        }
-    helper = OpenShiftAnsibleModuleHelper(api_version, resource, debug=True, reset_logfile=False, **auth)
-    helper.api_client.config.debug = True
-
-    return helper
-
-
-@pytest.fixture()
-def admin_k8s_ansible_helper(request, admin_kubeconfig):
-    _, _, api_version, resource = request.module.__name__.split('_', 3)
-    auth = {}
-    if admin_kubeconfig is not None:
-        auth = {
-            'kubeconfig': str(admin_kubeconfig),
-            'host': 'https://localhost:8443',
-            'verify_ssl': False
-        }
-    helper = KubernetesAnsibleModuleHelper(api_version, resource, **auth)
-    helper.enable_debug(to_file=False)
-    helper.api_client.config.debug = True
-
-    return helper
-
-
-@pytest.fixture()
-def admin_openshift_ansible_helper(request, admin_kubeconfig):
-    _, _, api_version, resource = request.module.__name__.split('_', 3)
-    auth = {}
-    if admin_kubeconfig is not None:
-        auth = {
-            'kubeconfig': str(admin_kubeconfig),
-            'host': 'https://localhost:8443',
-            'verify_ssl': False
-        }
-    helper = OpenShiftAnsibleModuleHelper(api_version, resource, **auth)
-    helper.enable_debug(to_file=False)
-    helper.api_client.config.debug = True
-
-    return helper
-
-
 @pytest.fixture(scope='class')
 def ansible_helper(request, kubeconfig, admin_kubeconfig):
-    _, api_version, resource = map(lambda x: x.lower(), request.node.name.split('_', 2))
+    pieces = re.findall('[A-Z][a-z0-9]*', request.node.name)
+    api_version = pieces[1].lower()
+    resource = '_'.join(map(str.lower, pieces[2:]))
     needs_admin = any([x.get('admin') for x in request.node.cls.tasks])
     config = admin_kubeconfig if needs_admin else kubeconfig
     auth = {}
