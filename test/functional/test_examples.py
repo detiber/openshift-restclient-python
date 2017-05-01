@@ -58,7 +58,6 @@ class Example(object):
             assert new_obj is not None
             obj_compare(ansible_helper, new_obj, params)
 
-
     def test_replace_resource(self, ansible_helper, resources, replace_params, obj_compare):
         resource = next(resources())
         for params in replace_params:
