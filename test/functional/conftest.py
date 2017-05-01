@@ -151,7 +151,7 @@ def obj_compare():
     return compare_func
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='class')
 def namespace(kubeconfig):
     name = "test-{}".format(uuid.uuid4())
 
@@ -173,14 +173,12 @@ def namespace(kubeconfig):
 
 
 @pytest.fixture()
-def object_name():
-    # v1.3 services cannot be longer than 24 characters long
-    # truncate at 23 to avoid a trailing '-'
-    name = 'test-{}'.format(uuid.uuid4())[:23]
-    return name
+def object_name(request):
+    action = request.function.__name__.split('_')[1]
+    return '{}-{}'.format(action, uuid.uuid4())[:23].strip('-')
 
 
-@pytest.fixture()
+@pytest.fixture(scope='class')
 def project(kubeconfig):
     name = "test-{}".format(uuid.uuid4())
     auth = {}
@@ -208,8 +206,8 @@ def openshift_version():
 @pytest.fixture(autouse=True)
 def skip_by_version(request, openshift_version):
     if request.node.cls.tasks.get('version_limits') and openshift_version:
-        lowest_version = request.node.cls.tasks['version_limits'].get('min')
-        highest_version = request.node.cls.tasks['version_limits'].get('max')
+        lowest_version = str(request.node.cls.tasks['version_limits'].get('min'))
+        highest_version = str(request.node.cls.tasks['version_limits'].get('max'))
         skip_latest = request.node.cls.tasks['version_limits'].get('latest')
 
         if openshift_version == 'latest' and skip_latest:

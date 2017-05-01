@@ -2,7 +2,7 @@
 ---
 
 version_limits:
-  min: 1.5
+  min: '1.5'
 
 tasks:
 - create:
