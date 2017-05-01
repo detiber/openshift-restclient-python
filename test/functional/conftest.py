@@ -164,12 +164,13 @@ def admin_openshift_ansible_helper(request, admin_kubeconfig):
 
 @pytest.fixture(scope='class')
 def ansible_helper(request, kubeconfig, admin_kubeconfig):
-    # TODO: Admin stuff?
     _, api_version, resource = map(lambda x: x.lower(), request.node.name.split('_', 2))
+    needs_admin = any([x.get('admin') for x in request.node.cls.tasks])
+    config = admin_kubeconfig if needs_admin else kubeconfig
     auth = {}
     if kubeconfig is not None:
         auth = {
-            'kubeconfig': str(kubeconfig),
+            'kubeconfig': str(config),
             'host': 'https://localhost:8443',
             'verify_ssl': False
         }

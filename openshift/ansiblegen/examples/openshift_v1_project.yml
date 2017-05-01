@@ -4,6 +4,7 @@
 - create:
     name: example
   name: Create project
+  admin: yes
 
 #- create:
 #    name: example2
@@ -15,4 +16,4 @@
 - remove:
     name: example
   name: Remove project
-
+  admin: yes
