@@ -1,6 +1,7 @@
 # v1_service.yml
 ---
 
+tasks:
 - create:
     name: myservice
     namespace: k8s-project

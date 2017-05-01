@@ -81,7 +81,7 @@ class Example(object):
 
     @pytest.fixture()
     def create_params(self, project, object_name):
-        create_tasks = filter(lambda x: x.get('create'), self.tasks)
+        create_tasks = filter(lambda x: x.get('create'), self.tasks['tasks'])
         parameters = map(lambda x: x['create'], create_tasks)
         for parameter in parameters:
             if parameter.get('namespace'):
@@ -91,7 +91,7 @@ class Example(object):
 
     @pytest.fixture()
     def patch_params(self, project, object_name):
-        patch_tasks = filter(lambda x: x.get('patch'), self.tasks)
+        patch_tasks = filter(lambda x: x.get('patch'), self.tasks['tasks'])
         parameters = map(lambda x: x['patch'], patch_tasks)
         for parameter in parameters:
             if parameter.get('namespace'):
@@ -101,7 +101,7 @@ class Example(object):
 
     @pytest.fixture()
     def replace_params(self, project, object_name):
-        replace_tasks = filter(lambda x: x.get('replace'), self.tasks)
+        replace_tasks = filter(lambda x: x.get('replace'), self.tasks['tasks'])
         parameters = map(lambda x: x['replace'], replace_tasks)
         for parameter in parameters:
             if parameter.get('namespace'):

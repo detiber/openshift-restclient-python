@@ -102,7 +102,7 @@ def ansible_helper(request, kubeconfig, admin_kubeconfig):
     pieces = re.findall('[A-Z][a-z0-9]*', request.node.name)
     api_version = pieces[1].lower()
     resource = '_'.join(map(str.lower, pieces[2:]))
-    needs_admin = any([x.get('admin') for x in request.node.cls.tasks])
+    needs_admin = request.node.cls.tasks.get('admin')
     config = admin_kubeconfig if needs_admin else kubeconfig
     auth = {}
     if kubeconfig is not None:
@@ -207,11 +207,10 @@ def openshift_version():
 
 @pytest.fixture(autouse=True)
 def skip_by_version(request, openshift_version):
-    if request.node.get_marker('version_limit') and openshift_version:
-
-        lowest_version = request.node.get_marker('version_limit').kwargs.get('lowest_version')
-        highest_version = request.node.get_marker('version_limit').kwargs.get('highest_version')
-        skip_latest = request.node.get_marker('version_limit').kwargs.get('skip_latest')
+    if request.node.cls.tasks.get('version_limits') and openshift_version:
+        lowest_version = request.node.cls.tasks['version_limits'].get('min')
+        highest_version = request.node.cls.tasks['version_limits'].get('max')
+        skip_latest = request.node.cls.tasks['version_limits'].get('latest')
 
         if openshift_version == 'latest' and skip_latest:
             pytest.skip('This API is not supported in the latest openshift version')
