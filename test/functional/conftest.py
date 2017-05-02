@@ -206,20 +206,20 @@ def openshift_version():
 @pytest.fixture(autouse=True)
 def skip_by_version(request, openshift_version):
     if request.node.cls.tasks.get('version_limits') and openshift_version:
-        lowest_version = str(request.node.cls.tasks['version_limits'].get('min'))
-        highest_version = str(request.node.cls.tasks['version_limits'].get('max'))
+        lowest_version = request.node.cls.tasks['version_limits'].get('min')
+        highest_version = request.node.cls.tasks['version_limits'].get('max')
         skip_latest = request.node.cls.tasks['version_limits'].get('latest')
-
-        if openshift_version == 'latest':
-            if skip_latest:
-                pytest.skip('This API is not supported in the latest openshift version')
-            return
 
         too_low = lowest_version and parse_version(lowest_version) > parse_version(openshift_version)
         too_high = highest_version and parse_version(highest_version) < parse_version(openshift_version)
 
-        if too_low or too_high:
-            pytest.skip('This API is not supported in openshift versions < {}'.format(openshift_version))
+        if openshift_version == 'latest':
+            if skip_latest:
+                pytest.skip('This API is not supported in the latest openshift version')
+        elif too_low:
+            pytest.skip('This API is not supported in openshift versions > {}. You are using version {}'.format(lowest_version, openshift_version))
+        elif too_high:
+            pytest.skip('This API is not supported in openshift versions < {}. You are using version {}'.format(highest_version, openshift_version))
 
 
 def _get_id(argvalue):
