@@ -210,8 +210,10 @@ def skip_by_version(request, openshift_version):
         highest_version = str(request.node.cls.tasks['version_limits'].get('max'))
         skip_latest = request.node.cls.tasks['version_limits'].get('latest')
 
-        if openshift_version == 'latest' and skip_latest:
-            pytest.skip('This API is not supported in the latest openshift version')
+        if openshift_version == 'latest':
+            if skip_latest:
+                pytest.skip('This API is not supported in the latest openshift version')
+            return
 
         too_low = lowest_version and parse_version(lowest_version) > parse_version(openshift_version)
         too_high = highest_version and parse_version(highest_version) < parse_version(openshift_version)
