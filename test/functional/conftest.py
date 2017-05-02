@@ -175,7 +175,7 @@ def namespace(kubeconfig):
 @pytest.fixture()
 def object_name(request):
     action = request.function.__name__.split('_')[1]
-    return '{}-{}'.format(action, uuid.uuid4())[:23].strip('-')
+    return '{}-{}'.format(action, uuid.uuid4())[:22].strip('-')
 
 
 @pytest.fixture(scope='class')
