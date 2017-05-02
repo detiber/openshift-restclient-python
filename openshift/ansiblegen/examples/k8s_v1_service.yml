@@ -27,7 +27,7 @@ tasks:
       - port: 8788
         target_port: 8080
         name: socket-port
-    type: NodePort
+    type: ClusterIP
   name: Patch service
 
 - create:
@@ -68,5 +68,5 @@ tasks:
      - port: 8080
        target_port: 8080
        name: http
-    type: ClusterIP
+    type: NodePort
   name: Repace service
