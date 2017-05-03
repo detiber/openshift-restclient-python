@@ -97,11 +97,16 @@ def admin_kubeconfig(openshift_container, tmpdir_factory):
         return kubeconfig_file
 
 
-@pytest.fixture(scope='class')
-def ansible_helper(request, kubeconfig, admin_kubeconfig):
-    pieces = re.findall('[A-Z][a-z0-9]*', request.node.name)
+def parse_test_name(name):
+    pieces = re.findall('[A-Z][a-z0-9]*', name)
     api_version = pieces[1].lower()
     resource = '_'.join(map(str.lower, pieces[2:]))
+    return api_version, resource
+
+
+@pytest.fixture(scope='class')
+def ansible_helper(request, kubeconfig, admin_kubeconfig):
+    api_version, resource = parse_test_name(request.node.name)
     needs_admin = request.node.cls.tasks.get('admin')
     config = admin_kubeconfig if needs_admin else kubeconfig
     auth = {}
@@ -201,6 +206,15 @@ def project(kubeconfig):
 @pytest.fixture
 def openshift_version():
     return pytest.config.getoption('--openshift-version')
+
+
+@pytest.fixture(autouse=True)
+def skip_empty(request):
+    api_version, resource = parse_test_name(request.node.cls._type)
+    action = request.function.__name__.split('_')[1]
+    tasks = filter(lambda x: x.get(action), request.node.cls.tasks['tasks'])
+    if not tasks and action not in ['get', 'remove']:
+        pytest.skip('No example provided to {} {}'.format(action, resource))
 
 
 @pytest.fixture(autouse=True)
