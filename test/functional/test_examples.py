@@ -87,8 +87,8 @@ class Example(object):
 
     @pytest.fixture()
     def create_params(self, project, object_name):
-        create_tasks = filter(lambda x: x.get('create'), self.tasks['tasks'])
-        parameters = map(lambda x: x['create'], create_tasks)
+        create_tasks = list(filter(lambda x: x.get('create'), self.tasks['tasks']))
+        parameters = list(map(lambda x: x['create'], create_tasks))
         for i, parameter in enumerate(parameters):
             if parameter.get('namespace'):
                 parameter['namespace'] = project
@@ -97,8 +97,8 @@ class Example(object):
 
     @pytest.fixture()
     def patch_params(self, project, object_name):
-        patch_tasks = filter(lambda x: x.get('patch'), self.tasks['tasks'])
-        parameters = map(lambda x: x['patch'], patch_tasks)
+        patch_tasks = list(filter(lambda x: x.get('patch'), self.tasks['tasks']))
+        parameters = list(map(lambda x: x['patch'], patch_tasks))
         for parameter in parameters:
             if parameter.get('namespace'):
                 parameter['namespace'] = project
@@ -107,8 +107,8 @@ class Example(object):
 
     @pytest.fixture()
     def replace_params(self, project, object_name):
-        replace_tasks = filter(lambda x: x.get('replace'), self.tasks['tasks'])
-        parameters = map(lambda x: x['replace'], replace_tasks)
+        replace_tasks = list(filter(lambda x: x.get('replace'), self.tasks['tasks']))
+        parameters = list(map(lambda x: x['replace'], replace_tasks))
         for parameter in parameters:
             if parameter.get('namespace'):
                 parameter['namespace'] = project
@@ -125,7 +125,7 @@ class Example(object):
             k8s_objs.append((name, namespace, ansible_helper.create_object(namespace, body=request_body)))
 
         try:
-            yield map(lambda x: x[2], k8s_objs)
+            yield list(map(lambda x: x[2], k8s_objs))
         finally:
             exceptions = []
             for name, namespace, k8s_obj in k8s_objs:
