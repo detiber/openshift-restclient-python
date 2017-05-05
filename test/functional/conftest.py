@@ -212,7 +212,7 @@ def openshift_version():
 def skip_empty(request):
     api_version, resource = parse_test_name(request.node.cls._type)
     action = request.function.__name__.split('_')[1]
-    tasks = filter(lambda x: x.get(action), request.node.cls.tasks['tasks'])
+    tasks = list(filter(lambda x: x.get(action), request.node.cls.tasks['tasks']))
     if not tasks and action not in ['get', 'remove']:
         pytest.skip('No example provided to {} {}'.format(action, resource))
 
