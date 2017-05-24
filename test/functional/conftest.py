@@ -247,19 +247,3 @@ def _get_id(argvalue):
     elif argvalue.get('replace'):
         op_type = 'replace'
     return op_type + '_' + argvalue[op_type]['name'] + '_' + "{:0>3}".format(argvalue['seq'])
-
-
-# def pytest_generate_tests(metafunc):
-#     tasks = {'create': [], 'remove': [], 'patch': [], 'replace': []}
-#     for task in metafunc.cls.tasks:
-#         for action in ['create', 'patch', 'remove', 'replace']:
-#             if '{}_tasks'.format(action) in metafunc.fixturenames:
-#                 tasks[action].append(task)
-
-#     # TODO: might need to update this...
-#     if 'namespaces' in metafunc.fixturenames:
-#         tasks = [x for x in tasks['create'] if x.get('namespace')]
-#         unique_namespaces = dict()
-#         for task in tasks:
-#             unique_namespaces[task['create']['namespace']] = None
-#         metafunc.parametrize("namespaces", list(unique_namespaces.keys()))
